@@ -6,7 +6,6 @@
 #include <utility>
 
 #include <rmm/cuda_stream_view.hpp>
-#include <rmm/exec_policy.hpp>
 #include <rmm/mr/device/pool_memory_resource.hpp>
 
 #include <cudf/column/column_factories.hpp>
@@ -19,13 +18,18 @@
 #include <cudf/binaryop.hpp>
 #include <cudf/filling.hpp>
 #include <cudf/concatenate.hpp>
+#include <cudf/reshape.hpp>
+#include <cudf/table/table.hpp>
 
 #include <cudf_test/column_utilities.hpp>
 
 std::unique_ptr<cudf::table> make_key_table(const int& num_row, const int& num_group) {
     int group_size = num_row / num_group;
-    auto single_group = cudf::sequence(cudf::data_type(cudf::data_id(INT32)), group_size);
-    auto key = cudf::repeat(cudf::table{single_group)}, num_group);
+    auto zero_scalar = cudf::make_fixed_width_scalar(0);
+    std::vector<std::unique_ptr<cudf::column>> group_vec;
+    group_vec.push_back(cudf::sequence(group_size, *zero_scalar));
+    auto group_tbl = std::make_unique<cudf::table>(std::move(group_vec));
+    auto key = cudf::tile(group_tbl->view(), num_group);
     return key;
 }
 
@@ -48,7 +52,6 @@ std::unique_ptr<cudf::table> grpby_elementwise_mul(cudf::table_view const& key, 
     std::vector<std::vector<std::unique_ptr<cudf::column>>> slice_results;
 
     for (int i = 0; i < cols.num_columns(); i++) {
-        nvtx3::thread_range r1{"Column loop"};
         auto col_view = groups.values->get_column(i).view();
         slice_results.push_back(std::vector<std::unique_ptr<cudf::column>>());
         auto &slice_result = slice_results[i];
@@ -99,18 +102,18 @@ int main(int argc, char** argv) {
 
     auto key = make_key_table(num_rows, num_groups);
     auto values = make_val_table(num_rows, num_cols);
-
-    // cudf::test::print(key->view(), std::cout, ", ");
-    // for (int i = 0; i < values->num_columns(); i++) {
-    //     std::cout << "Input Column: " << i << ": ";
-    //     cudf::test::print(values->get_column(i).view(), std::cout, ", ");
-    // }
+    
+    cudf::test::print(key->get_column(0).view(), std::cout, ", ");
+    for (int i = 0; i < values->num_columns(); i++) {
+        std::cout << "Input Column: " << i << ": ";
+        cudf::test::print(values->get_column(i).view(), std::cout, ", ");
+    }
 
     auto res = grpby_elementwise_mul(key->view(), values->view());
-    // for (int i = 0; i < res->num_columns(); i++) {
-    //     auto col = res->get_column(i);
-    //     std::cout << "Output Column: " << i << ": ";
-    //     cudf::test::print(col.view(), std::cout, ", ");
-    // }
+    for (int i = 0; i < res->num_columns(); i++) {
+        auto col = res->get_column(i);
+        std::cout << "Output Column: " << i << ": ";
+        cudf::test::print(col.view(), std::cout, ", ");
+    }
 
 }

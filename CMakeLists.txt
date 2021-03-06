@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(libcudf_example)
+project(libcudf_example VERSION 0.0.1 LANGUAGES C CXX CUDA)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CUDA_ARCHITECTURES "")
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CPM_DOWNLOAD_VERSION 0.27.2) 
 set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
@@ -16,8 +16,6 @@ endif()
 
 include(${CPM_DOWNLOAD_LOCATION})
 
-set(CUDAToolkit_INCLUDE_DIR "/usr/local/cuda-10.2/include")
-
 set(CUDF_VERSION "0.19")
 
 function(find_and_configure_cudf VERSION)
@@ -28,19 +26,16 @@ function(find_and_configure_cudf VERSION)
         GIT_TAG         branch-0.19
         GIT_SHALLOW     TRUE
         SOURCE_SUBDIR   cpp
-        OPTIONS         "BUILD_TESTS OFF"
+        OPTIONS         "BUILD_TESTS ON"
                         "BUILD_BENCHMARKS OFF"
                         "ARROW_STATIC_LIB ON"
                         "JITIFY_USE_CACHE ON"
                         "CUDA_STATIC_RUNTIME ON"
                         "DISABLE_DEPRECATION_WARNING ON"
-                        # control where generated JIT headers get placed
-                        # so we don't cache-bust ccache every clean build
-                        "CUDF_GENERATED_INCLUDE_DIR ${CPM_SOURCE_CACHE}/cudf-build"
     )
 endfunction()
 
 find_and_configure_cudf(${CUDF_VERSION})
 
 add_executable(${PROJECT_NAME} "src/test_cpp_grpby.cpp")
-target_link_libraries(${PROJECT_NAME} rmm::rmm cudf::cudf)
+target_link_libraries(${PROJECT_NAME} cudf::cudf)
