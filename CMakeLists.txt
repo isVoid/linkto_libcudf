@@ -26,7 +26,7 @@ function(find_and_configure_cudf VERSION)
         GIT_TAG         branch-0.19
         GIT_SHALLOW     TRUE
         SOURCE_SUBDIR   cpp
-        OPTIONS         "BUILD_TESTS ON"
+        OPTIONS         "BUILD_TESTS OFF"
                         "BUILD_BENCHMARKS OFF"
                         "ARROW_STATIC_LIB ON"
                         "JITIFY_USE_CACHE ON"
@@ -37,5 +37,6 @@ endfunction()
 
 find_and_configure_cudf(${CUDF_VERSION})
 
-add_executable(${PROJECT_NAME} "src/test_cpp_grpby.cpp")
+# Configure your project here
+add_executable(${PROJECT_NAME} "src/process_csv.cpp")
 target_link_libraries(${PROJECT_NAME} cudf::cudf)

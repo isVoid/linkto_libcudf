@@ -1,5 +1,5 @@
 FROM nvidia/cuda:11.1.1-devel-ubuntu18.04
-ARG PARALLEL_LEVEL=10
+ARG PARALLEL_LEVEL=8
 
 # Install basic cudf dependencies
 RUN GCC_VERSION=9 \
@@ -33,6 +33,8 @@ RUN GCC_VERSION=9 \
  # Set gcc-${GCC_VERSION} as the default gcc
  && update-alternatives --set gcc /usr/bin/gcc-${GCC_VERSION}
 
+ARG CMAKE_VERSION=3.18.5
+
 # Install CMake
 RUN cd /tmp \
  && curl -fsSLO --compressed "https://github.com/Kitware/CMake/releases/download/v$CMAKE_VERSION/cmake-$CMAKE_VERSION.tar.gz" -o /tmp/cmake-$CMAKE_VERSION.tar.gz \
@@ -43,9 +45,9 @@ RUN cd /tmp \
  && make install -j$PARALLEL_LEVEL \
  && cd /tmp && rm -rf /tmp/cmake-$CMAKE_VERSION*
 
- ARG CCACHE_VERSION=4.1
+ARG CCACHE_VERSION=4.1
 
- # Install ccache
+# Install ccache
 RUN cd /tmp \
  && curl -fsSLO --compressed https://github.com/ccache/ccache/releases/download/v$CCACHE_VERSION/ccache-$CCACHE_VERSION.tar.gz -o /tmp/ccache-$CCACHE_VERSION.tar.gz \
  && tar -xvzf /tmp/ccache-$CCACHE_VERSION.tar.gz && cd /tmp/ccache-$CCACHE_VERSION \
@@ -63,9 +65,3 @@ ENV CUDA_HOME="/usr/local/cuda"
 
 RUN mkdir -p /workspace
 WORKDIR /workspace
-
-RUN git clone https://github.com/isVoid/linkto_libcudf linkto_libcudf
-WORKDIR /workspace/linkto_libcudf
-
-RUN mkdir build
-RUN cmake -S . -B build && cmake --build build
