@@ -1,4 +1,4 @@
-# Basic Standalone cudf application
+# Basic Standalone libcudf application
 
 This project contains a simple example demonstrating basic libcudf use case. It
 also show case ways to build your own application based on libcudf in
