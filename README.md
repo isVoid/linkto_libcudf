@@ -1,7 +1,13 @@
 # Basic Standalone cudf application
 
-Prerequisite:
-- Your project should build with cmake 3.18.5
+This project contains a simple example demonstrating basic libcudf use case. It also show case ways
+to build your own application based on libcudf in a minimalistic style.
+
+The example source code includes operations to load a csv file that contains stock prices from 4 companies
+spanning across 5 days, to compute the average of the closing price for each company and write the result
+in csv format.
+
+## How to compile and execute
 
 ### Step 1: build environment in docker (only perform once)
 ```bash
@@ -26,5 +32,5 @@ The first time running this command will take a long time because it will build 
 
 ### Execute binary
 ```bash
-docker exec rapidsenvrt sh -c "build/process_csv"
+docker exec rapidsenvrt sh -c "build/libcudf_example"
 ```
